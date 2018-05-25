@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login Page</title>
+</head>
+<body>
+{% if error!="" %}
+    <h2>11{{error}}</h2>
+{% else %}
+    <h2>请登录界面</h2>
+{% endif %}
+<form action="/login" method="POST">
+    <p>name: <input name="username" type="text" id="username" />
+    <p>password:<input name="password" type="password" id="password" />
+    <input type="submit" value="Submit" />
+</form>
+
+
+</body>
+</html>
