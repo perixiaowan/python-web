@@ -1,3 +1,6 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
 import os
 from flask import Flask, url_for,request , render_template,redirect,send_from_directory
 
