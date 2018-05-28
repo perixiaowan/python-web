@@ -1,5 +1,5 @@
 import os
-from flask import Flask, url_for,request , render_template,redirect
+from flask import Flask, url_for,request , render_template,redirect,send_from_directory
 
 from werkzeug.utils import secure_filename
 
@@ -9,6 +9,8 @@ ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+# 把上传文件限制为最大 16 MB. 如果请求传输一个更大的文件， Flask 会抛出一个 RequestEntityTooLarge 异常。
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
 @app.route('/')
 def index(): pass
@@ -70,12 +72,22 @@ def upload_file():
             filename = secure_filename(file.filename)
             print("os.path:%s" %(os.path))
            # file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            file.save(app.config['UPLOAD_FOLDER'], filename)
+        # file.save(app.config['UPLOAD_FOLDER'], filename)
             return redirect(url_for('uploaded_file',
                                     filename=filename))
     return
 
+@app.route('/uploads/<filename>')
+def uploaded_file(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'],
+                               filename)
 
+# 类似 function uploaded_file
+# app.add_url_rule('/uploads/<filename>', 'uploaded_file',
+#                  build_only=True)
+# app.wsgi_app = SharedDataMiddleware(app.wsgi_app, {
+#     '/uploads':  app.config['UPLOAD_FOLDER']
+# })
 
 @app.route('/login', methods=['POST', 'GET'])
 def login():
@@ -99,4 +111,4 @@ def log_the_user_in(username):
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(port = 8888, debug=True)
