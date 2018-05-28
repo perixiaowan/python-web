@@ -6,7 +6,7 @@ from flask import Flask, url_for,request , render_template,redirect,send_from_di
 
 from werkzeug.utils import secure_filename
 
-UPLOAD_FOLDER = '/uploads'
+UPLOAD_FOLDER = 'uploads'
 #UPLOAD_FOLDER = 'D:\\uploads'
 ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
 
@@ -74,8 +74,8 @@ def upload_file():
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
             print("os.path:%s" %(os.path))
-           # file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            file.save(app.config['UPLOAD_FOLDER'], filename)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            #file.save(app.config['UPLOAD_FOLDER'], filename)
             return redirect(url_for('uploaded_file',
                                     filename=filename))
     return
