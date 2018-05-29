@@ -2,9 +2,14 @@
 # -*- coding: utf-8 -*-
 
 import os
-from flask import Flask, url_for,request , render_template,redirect,send_from_directory
+from flask import Flask, url_for,request , render_template,redirect,send_from_directory,session,make_response,g, abort,flash
 
 from werkzeug.utils import secure_filename
+import sqlite3
+import logging
+
+logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
+
 
 UPLOAD_FOLDER = 'uploads'
 #UPLOAD_FOLDER = 'D:\\uploads'
@@ -15,19 +20,76 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 # 把上传文件限制为最大 16 MB. 如果请求传输一个更大的文件， Flask 会抛出一个 RequestEntityTooLarge 异常。
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
+# set session's secret_key
+app.config['SECRET_KEY'] = '123456'
+
 @app.route('/')
-def index(): pass
+def index():
+    username = request.form['username']
+    print("request cookies username = %s" %(request.cookies.get('username')))
+    #username = request.cookies.get('username')
+    resp = make_response(render_template('login.html'))
+    resp.set_cookie('username', username)
+    return resp
+    # if 'username' in session:
+    #     return 'Logged in as %s' % (session['username'])
+    # return 'You are not logged in'
+
+@app.route('/login', methods=['POST', 'GET'])
+def login():
+    error = None
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        session['username'] = username
+        session['password'] = password
+
+        print("password is %s" %(session['password']))
+        print("SECRET_KEY is %s" % (app.config['SECRET_KEY']))
+        resp = make_response(render_template('login.html'))
+        resp.set_cookie('username', username)
+        return render_template('index.html', name=username)
+    return render_template('login.html', error=error)
+
+    # error = None
+    # if request.method == 'POST':
+    #     if valid_login(request.form['username'],
+    #                    request.form['password']):
+    #         return log_the_user_in(request.form['username'])
+    #     else:
+    #         error = 'Invalid username/password'
+    # # the code below is executed if the request method
+    # # was GET or the credentials were invalid
+    # return render_template('login.html', error=error)
+
 
 
 @app.route('/loginpage')
 def loginpage():
     return render_template('login.html',error="")
 
+
+@app.route('/logout')
+def logout():
+    # remove the username from the session if it's there
+    session.pop('username', None)
+    return redirect(url_for('login'))
+
+
+def connect_db():
+    """Connects to the specific database."""
+    rv = sqlite3.connect(app.config['DATABASE'])
+    rv.row_factory = sqlite3.Row
+    return rv
+
+
 @app.route('/user/<username>')
 def profile(username): pass
 
-def hello_world():
-    return 'Hello World!'
+@app.errorhandler(404)
+def page_not_found(error):
+    return render_template('page_not_found.html'), 404
+
 
 @app.route('/user/<username>')
 def show_user_profile(username):
@@ -92,18 +154,8 @@ def uploaded_file(filename):
 #     '/uploads':  app.config['UPLOAD_FOLDER']
 # })
 
-@app.route('/login', methods=['POST', 'GET'])
-def login():
-    error = None
-    if request.method == 'POST':
-        if valid_login(request.form['username'],
-                       request.form['password']):
-            return log_the_user_in(request.form['username'])
-        else:
-            error = 'Invalid username/password'
-    # the code below is executed if the request method
-    # was GET or the credentials were invalid
-    return render_template('login.html', error=error)
+
+
 
 def valid_login(username,passwd):
     if username == 'xiaowan' and passwd == '123456':
